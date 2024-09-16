@@ -12,8 +12,7 @@
 //!
 //! `BigFloat` creation operations take bit precision as an argument.
 //! Precision is always rounded up to the nearest word.
-//! For example, if you specify a precision of 1 bit, then it will be converted to 64 bits when one word has a size of 64 bits.
-//! If you specify a precision of 65 bits, the resulting precision will be 128 bits (2 words), and so on.
+//! For example, if you specify a precision of 1 bit, then it will be converted to 64 bits when one word has a size of 64 bits. If you specify a precision of 65 bits, the resulting precision will be 128 bits (2 words), and so on.
 //!
 //!
 //! Most operations take the rounding mode as an argument.
@@ -52,74 +51,83 @@
 //! The example below computes value of Pi with precision 1024 rounded to the nearest even number using `expr!` macro.
 //! Macro simplifies syntax and takes care of the error.
 //!
-//! ```
-//! use astro_float::Consts;
-//! use astro_float::RoundingMode;
-//! use astro_float::ctx::Context;
-//! use astro_float::expr;
-//!
-//! // Create a context with precision 1024, rounding to the nearest even,
-//! // and exponent range from -100000 to 100000.
-//! let mut ctx = Context::new(1024, RoundingMode::ToEven,
-//!     Consts::new().expect("Constants cache initialized"),
-//!     -100000, 100000);
-//!
-//! // Compute pi: pi = 6*arctan(1/sqrt(3))
-//! let pi = expr!(6 * atan(1 / sqrt(3)), &mut ctx);
-//!
-//! // Use library's constant value for verifying the result.
-//! let pi_lib = ctx.const_pi();
-//!
-//! // Compare computed constant with library's constant
-//! assert_eq!(pi.cmp(&pi_lib), Some(0));
-//!
-//! // Print using decimal radix.
-//! println!("{}", pi);
-//!
-//! // output: 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458699748e+0
-//! ```
+#![cfg_attr(
+    feature = "std",
+    doc = r##""
+```
+use astro_float::Consts;
+use astro_float::RoundingMode;
+use astro_float::ctx::Context;
+use astro_float::expr;
+
+// Create a context with precision 1024, rounding to the nearest even,
+// and exponent range from -100000 to 100000.
+let mut ctx = Context::new(1024, RoundingMode::ToEven,
+    Consts::new().expect("Constants cache initialized"),
+    -100000, 100000);
+
+// Compute pi: pi = 6*arctan(1/sqrt(3))
+let pi = expr!(6 * atan(1 / sqrt(3)), &mut ctx);
+
+// Use library's constant value for verifying the result.
+let pi_lib = ctx.const_pi();
+
+// Compare computed constant with library's constant
+assert_eq!(pi.cmp(&pi_lib), Some(0));
+
+// Print using decimal radix.
+println!("{}", pi);
+
+// output: 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458699748e+0
+```
+"##
+)]
 //!
 //! The example below computes value of Pi with precision 1024 rounded to the nearest even number using `BigFloat` directly.
 //! We will take care of the error in this case.
 //!
-//! ``` rust
-//! use astro_float::BigFloat;
-//! use astro_float::Consts;
-//! use astro_float::RoundingMode;
-//!
-//! // Precision with some space for error.
-//! let p = 1024 + 8;
-//!
-//! // The results of computations will not be rounded.
-//! // That will be more performant, even though it may give an incorrectly rounded result.
-//! let rm = RoundingMode::None;
-//!
-//! // Initialize mathematical constants cache
-//! let mut cc = Consts::new().expect("An error occured when initializing constants");
-//!
-//! // Compute pi: pi = 6*arctan(1/sqrt(3))
-//! let six = BigFloat::from_word(6, 1);
-//! let three = BigFloat::from_word(3, p);
-//!
-//! let n = three.sqrt(p, rm);
-//! let n = n.reciprocal(p, rm);
-//! let n = n.atan(p, rm, &mut cc);
-//! let mut pi = six.mul(&n, p, rm);
-//!
-//! // Reduce precision to 1024 and round to the nearest even number.
-//! pi.set_precision(1024, RoundingMode::ToEven).expect("Precision updated");
-//!
-//! // Use library's constant for verifying the result
-//! let pi_lib = cc.pi(1024, RoundingMode::ToEven);
-//!
-//! // Compare computed constant with library's constant
-//! assert_eq!(pi.cmp(&pi_lib), Some(0));
-//!
-//! // Print using decimal radix.
-//! println!("{}", pi);
-//!
-//! // output: 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458699748e+0
-//! ```
+#![cfg_attr(
+    feature = "std",
+    doc = r##""
+``` rust
+use astro_float::BigFloat;
+use astro_float::Consts;
+use astro_float::RoundingMode;
+
+// Precision with some space for error.
+let p = 1024 + 8;
+
+// The results of computations will not be rounded.
+// That will be more performant, even though it may give an incorrectly rounded result.
+let rm = RoundingMode::None;
+
+// Initialize mathematical constants cache
+let mut cc = Consts::new().expect("An error occured when initializing constants");
+
+// Compute pi: pi = 6*arctan(1/sqrt(3))
+let six = BigFloat::from_word(6, 1);
+let three = BigFloat::from_word(3, p);
+
+let n = three.sqrt(p, rm);
+let n = n.reciprocal(p, rm);
+let n = n.atan(p, rm, &mut cc);
+let mut pi = six.mul(&n, p, rm);
+
+// Reduce precision to 1024 and round to the nearest even number.
+pi.set_precision(1024, RoundingMode::ToEven).expect("Precision updated");
+
+// Use library's constant for verifying the result
+let pi_lib = cc.pi(1024, RoundingMode::ToEven);
+
+// Compare computed constant with library's constant
+assert_eq!(pi.cmp(&pi_lib), Some(0));
+
+// Print using decimal radix.
+println!("{}", pi);
+
+// output: 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458699748e+0
+```"##
+)]
 //!
 //! ## Performance recommendations
 //!
